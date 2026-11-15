@@ -5,7 +5,8 @@
 //   No "slow network" race: racing each module separately could mix old and new code.
 // - Other sites' requests (map tiles, place search) are left to the browser.
 // SHELL must list every app file (tests/unit/sw.test.mjs checks it against public/).
-const CACHE = 'value-charge-v2';
+// Bump on a map-engine upgrade: activate deletes every other cache, so the old vendored engine leaves users' disks.
+const CACHE = 'value-charge-v3';
 const SHELL = [
   './',
   'index.html',

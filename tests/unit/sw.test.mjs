@@ -32,5 +32,20 @@ test('the map engine version in map.js matches package.json and the vendored fol
   const mapJs = readFileSync(join(PUBLIC, 'js/ui/map.js'), 'utf8');
   const version = mapJs.match(/const MAPLIBRE_VERSION = '([\d.]+)'/)[1];
   assert.equal(version, pkg.devDependencies['maplibre-gl']);
-  assert.ok(existsSync(join(PUBLIC, `vendor/maplibre-gl-${version}/maplibre-gl-csp.js`)), 'run npm run vendor');
+  for (const file of ['maplibre-gl.js', 'maplibre-gl-worker.js', 'maplibre-gl.css']) {
+    assert.ok(existsSync(join(PUBLIC, `vendor/maplibre-gl-${version}/${file}`)), `${file}: run npm run vendor`);
+  }
+});
+
+test('the vendored map engine is a release with no known sanitizer bypass (GHSA-jrc7-96c5-q579: <= 6.4.0)', () => {
+  const mapJs = readFileSync(join(PUBLIC, 'js/ui/map.js'), 'utf8');
+  const [major, minor, patch] = mapJs.match(/const MAPLIBRE_VERSION = '([\d.]+)'/)[1].split('.').map(Number);
+  assert.ok(major > 6 || (major === 6 && (minor > 4 || (minor === 4 && patch >= 1))), `${major}.${minor}.${patch} is affected`);
+});
+
+test('only the current map engine is shipped (an old vendored copy would still be served)', () => {
+  const folders = readdirSync(join(PUBLIC, 'vendor')).filter((name) => name.startsWith('maplibre-gl-'));
+  const mapJs = readFileSync(join(PUBLIC, 'js/ui/map.js'), 'utf8');
+  const version = mapJs.match(/const MAPLIBRE_VERSION = '([\d.]+)'/)[1];
+  assert.deepEqual(folders, [`maplibre-gl-${version}`]);
 });

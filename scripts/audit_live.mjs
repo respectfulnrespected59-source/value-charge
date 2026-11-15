@@ -66,10 +66,13 @@ async function auditFiles(base) {
     else check(false, `/${path} matches the local file`, `${res.status} ${isText ? `${lineCount(body)} vs ${lineCount(local.toString('utf8'))} lines` : `${body.length} vs ${local.length} bytes`}`);
   }
   check(same === files.length, `all ${files.length} site files match the local build`, `${same}/${files.length}`);
-  const vendor = files.find((f) => f.endsWith('maplibre-gl-csp.js'));
+  const vendor = files.find((f) => f.startsWith('vendor/') && f.endsWith('/maplibre-gl.js'));
   const { res } = await get(base, `/${vendor}`);
   const immutable = CACHE_RULES.find((r) => r.prefix === '/vendor/').value;
   check(res.headers.get('cache-control') === immutable, 'map engine caches for a year (versioned URL)', res.headers.get('cache-control') || 'missing');
+  // The engine is an ES module: a browser refuses a module served with a non-JavaScript type.
+  check(/javascript/.test(res.headers.get('content-type') || ''), 'map engine is served as JavaScript (module loads)', res.headers.get('content-type') || 'missing');
+  check(!files.some((f) => /maplibre-gl-5\./.test(f)), 'old map engine 5.x is ABSENT from the build (negative)');
 }
 
 async function auditData(base) {

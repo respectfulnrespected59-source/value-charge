@@ -1,10 +1,10 @@
-// The live station map: MapLibre GL (self-hosted CSP build) over the OpenFreeMap
+// The live station map: MapLibre GL (self-hosted ES module build) over the OpenFreeMap
 // "positron" vector style, recoloured to the VALUE CHARGE palette.
 // Loaded after the list renders, so the stations show up before the map engine does.
 import { boundsForRadius, circlePolygon } from '../lib/geo.js';
 import { brandStyle } from '../lib/map-style.js';
 
-const MAPLIBRE_VERSION = '5.24.0';
+const MAPLIBRE_VERSION = '6.18.0';
 const VENDOR = `vendor/maplibre-gl-${MAPLIBRE_VERSION}/`;
 export const STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
 const STYLE_TIMEOUT_MS = 10000;
@@ -20,14 +20,13 @@ const FONT = ['Noto Sans Bold'];
 const HIT_PX = 12; // a finger is wider than a dot
 const subtract = (a, b) => [a.x - b.x, a.y - b.y];
 
-function loadScript(src) {
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = src;
-    script.onload = resolve;
-    script.onerror = () => reject(new Error(`Could not load ${src}`));
-    document.head.append(script);
-  });
+// MapLibre 6 is an ES module (same origin, so CSP script-src 'self' allows it). Its worker runs as a module
+// worker from our own file (worker-src 'self'): no blob: URL, no eval.
+async function loadEngine() {
+  const url = (file) => new URL(`${VENDOR}${file}`, document.baseURI).href;
+  const maplibregl = await import(url('maplibre-gl.js'));
+  maplibregl.setWorkerUrl(url('maplibre-gl-worker.js'));
+  return maplibregl;
 }
 
 function loadCss(href) {
@@ -168,9 +167,7 @@ function createView(map, container) {
 export async function createMapView(container, { center, radius, onSelect }) {
   if (!hasWebGL()) throw new Error('WebGL is not available');
   loadCss(`${VENDOR}maplibre-gl.css`);
-  const [style] = await Promise.all([loadStyle(), loadScript(`${VENDOR}maplibre-gl-csp.js`)]);
-  const { maplibregl } = window;
-  maplibregl.setWorkerUrl(`${VENDOR}maplibre-gl-csp-worker.js`);
+  const [style, maplibregl] = await Promise.all([loadStyle(), loadEngine()]);
   const map = new maplibregl.Map({
     container,
     style,
