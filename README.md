@@ -47,7 +47,7 @@ Laboratory of the Rockies; the old host no longer resolves.
 - `public/js/lib/` is pure, unit-tested logic (geo, normalize, query, url-state, store, render,
   geocode, tiles, map-style). `public/js/app.js` wires the page; `public/js/ui/` holds the map and
   the calculator.
-- Map: MapLibre GL 5.24.0 (CSP build, self-hosted in `public/vendor/`, `npm run vendor`) over the
+- Map: MapLibre GL 6.18.0 (ES-module build, self-hosted in `public/vendor/`, `npm run vendor`) over the
   OpenFreeMap "positron" vector style, recoloured to the brand palette at load time.
 - Place search: Nominatim, with Photon as the backup. Called only on a search, cached per visit.
 - Fonts are self-hosted (`node tools/fetch_fonts.mjs`); icons from `python tools/make_icons.py`.
