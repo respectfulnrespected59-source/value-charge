@@ -4,6 +4,7 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { binaryMatches, lineCount } from './audit-compare.mjs';
 import { MINIMUM_COUNTS } from './data/dataset.mjs';
 import { CACHE_RULES, MIN_HSTS_SECONDS, SECURITY_HEADERS } from './headers.mjs';
 
@@ -12,8 +13,6 @@ const UA = 'ValueChargeAudit/1.0';
 const SAMPLE_TILES = ['30_-98', '38_-106', '40_-88', '32_-118', '44_-94'];
 const results = [];
 const check = (ok, label, detail = '') => results.push({ ok: Boolean(ok), label, detail });
-// CRLF checkout vs LF server: compare line counts, not bytes.
-const lineCount = (text) => text.replace(/\r\n/g, '\n').replace(/\n$/, '').split('\n').length;
 
 async function get(base, path) {
   const res = await fetch(new URL(path, base), { redirect: 'follow', cache: 'no-store', headers: { 'User-Agent': UA } });
@@ -59,7 +58,10 @@ async function auditFiles(base) {
     const local = await readFile(join(PUBLIC, path));
     const { res, body } = await get(base, `/${path}`);
     const isText = typeof body === 'string';
-    const match = res.status === 200 && (isText ? lineCount(body) === lineCount(local.toString('utf8')) : body.length === local.length);
+    const polished = res.headers.get('cf-polished');
+    const match = res.status === 200 && (isText
+      ? lineCount(body) === lineCount(local.toString('utf8'))
+      : binaryMatches({ servedBytes: body.length, localBytes: local.length, polished }));
     if (match) same += 1;
     else check(false, `/${path} matches the local file`, `${res.status} ${isText ? `${lineCount(body)} vs ${lineCount(local.toString('utf8'))} lines` : `${body.length} vs ${local.length} bytes`}`);
   }
