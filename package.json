@@ -1,0 +1,24 @@
+{
+  "name": "value-charge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "VALUE CHARGE: find real kerosene, diesel and E85 stations anywhere in the US.",
+  "type": "module",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "node --test --experimental-test-coverage --test-coverage-include=public/js/lib/** --test-coverage-lines=80 --test-coverage-branches=75 --test-coverage-functions=80 \"tests/unit/*.test.mjs\"",
+    "test:e2e": "playwright test",
+    "data:fetch": "node scripts/data/fetch-osm.mjs && node scripts/data/fetch-afdc.mjs",
+    "data:build": "node scripts/data/build-tiles.mjs",
+    "vendor": "node scripts/vendor.mjs",
+    "audit:live": "node scripts/audit_live.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "maplibre-gl": "5.24.0"
+  }
+}

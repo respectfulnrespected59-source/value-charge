@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#081826">
+  <title>VALUE CHARGE · Kerosene, Diesel &amp; E85 Locator</title>
+  <meta name="description" content="Find real kerosene, diesel and E85 stations anywhere in the US. Free, no sign-up. Listings from OpenStreetMap and the U.S. Department of Energy.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="img/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <link rel="preload" href="fonts/barlow-condensed-normal-800.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/fonts.css">
+  <link rel="stylesheet" href="css/app.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#locator">Skip to station locator</a>
+
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="VALUE CHARGE home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 42 50" width="40" height="48">
+          <path d="M21 1C11 12 3 20 3 31c0 11 8 18 18 18s18-7 18-18C39 20 31 12 21 1Z" fill="#cf5b2e"/>
+          <path d="M23 12 12 31h8l-2 12 13-21h-9l1-10Z" fill="#ffe0ca"/>
+        </svg>
+      </span>
+      <span>
+        <span class="brand-name">VALUE <span>CHARGE</span></span>
+        <span class="brand-sub">Alternative fuel locator</span>
+      </span>
+    </a>
+
+    <nav class="main-nav" aria-label="Main navigation">
+      <button class="nav-button is-active" type="button" data-view="locator" aria-current="page">Locator</button>
+      <button class="nav-button" type="button" data-view="saved">Saved <span class="saved-count" id="savedCount">0</span></button>
+    </nav>
+
+    <button class="header-action" type="button" id="openCalculator">Fuel cost calculator</button>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="pageTitle">
+      <div>
+        <p class="eyebrow" id="heroEyebrow">Nationwide station network</p>
+        <h1 id="pageTitle">The right fuel.<br><span>Right on your way.</span></h1>
+        <p class="hero-copy">Find kerosene, diesel and E85 stops anywhere in the US without bouncing between apps. Search a city or ZIP, filter by fuel and distance, and get directions in one tap.</p>
+        <span class="data-badge" id="dataBadge">Real listings · OpenStreetMap + U.S. Dept. of Energy</span>
+      </div>
+      <div class="hero-side" aria-hidden="true">
+        <strong class="hero-number">03</strong>
+        <p>Fuel types.<br>One clean search.<br>Zero guesswork.</p>
+      </div>
+    </section>
+
+    <noscript>VALUE CHARGE needs JavaScript to search stations, show the map and save your stops.</noscript>
+
+    <section class="locator-shell" id="locator" aria-label="Fuel station locator">
+      <aside class="sidebar">
+        <form class="search-form" id="searchForm" novalidate>
+          <label for="locationSearch">Search a city, ZIP or station</label>
+          <div class="search-row">
+            <input class="search-input" id="locationSearch" name="location" type="search" value="Austin, TX" placeholder="Try Denver, 78664 or a station name" autocomplete="off" maxlength="80" required>
+            <button class="search-submit" id="searchSubmit" type="submit" aria-label="Search">→</button>
+          </div>
+          <button class="locate-button" type="button" id="locateButton"><span aria-hidden="true">◎</span> Use my location</button>
+          <p class="form-message" id="searchMessage" aria-live="polite"></p>
+        </form>
+
+        <div class="filter-section">
+          <span class="filter-label" id="fuelFilterLabel">Fuel you need</span>
+          <div class="fuel-filters" role="group" aria-labelledby="fuelFilterLabel">
+            <button class="fuel-filter" type="button" data-fuel="kerosene" aria-pressed="true"><span>K-1</span>Kerosene</button>
+            <button class="fuel-filter" type="button" data-fuel="diesel" aria-pressed="true"><span>D</span>Diesel</button>
+            <button class="fuel-filter" type="button" data-fuel="e85" aria-pressed="true"><span>E85</span>Ethanol</button>
+          </div>
+          <p class="filter-note">Shows stations listed with any selected fuel.</p>
+        </div>
+
+        <div class="control-grid">
+          <div>
+            <label class="control-label" for="radiusSelect">Search radius</label>
+            <select class="select-control" id="radiusSelect">
+              <option value="5">Within 5 mi</option>
+              <option value="10">Within 10 mi</option>
+              <option value="25" selected>Within 25 mi</option>
+              <option value="50">Within 50 mi</option>
+              <option value="100">Within 100 mi</option>
+            </select>
+          </div>
+          <div>
+            <label class="control-label" for="sortSelect">Sort results</label>
+            <select class="select-control" id="sortSelect">
+              <option value="distance" selected>Nearest first</option>
+              <option value="price">My logged price</option>
+              <option value="name">Station name</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="results-heading">
+          <h2 id="resultsTitle">Nearby stations</h2>
+          <p id="resultsCount" aria-live="polite">Loading…</p>
+        </div>
+
+        <div class="results-list" id="resultsList" aria-busy="true">
+          <div class="loading-state">Loading stations…</div>
+        </div>
+      </aside>
+
+      <section class="map-panel" aria-label="Station map and selected station details">
+        <div class="map-toolbar">
+          <div>
+            <strong id="mapAreaLabel">Austin, TX search area</strong>
+            <span>Live map · tap a dot to see the station</span>
+          </div>
+          <div class="map-legend" aria-label="Map colours">
+            <span><i class="legend-dot kerosene"></i>Kerosene</span>
+            <span><i class="legend-dot e85"></i>E85</span>
+            <span><i class="legend-dot diesel"></i>Diesel</span>
+          </div>
+        </div>
+
+        <div class="map-viewport">
+          <div class="map" id="map" role="region" aria-label="Map of the stations in the list"></div>
+          <p class="map-fallback" id="mapFallback" hidden></p>
+        </div>
+
+        <article class="station-detail" id="stationDetail" aria-live="polite">
+          <div class="empty-state"><strong>Pick a station</strong>Choose one from the list or the map.</div>
+        </article>
+      </section>
+    </section>
+
+    <footer class="data-note">
+      <p><strong>Where the listings come from:</strong> diesel and kerosene from <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors (ODbL), E85 from the U.S. Department of Energy's <a href="https://afdc.energy.gov/stations" target="_blank" rel="noopener noreferrer">Alternative Fuels Data Center</a>. <span id="dataDates"></span> Stations change: call ahead for a long trip.</p>
+      <p>No live pump prices: log the price you see and VALUE CHARGE remembers it on this device only. <span class="built-with">Built with QUAN-TESS AI.</span></p>
+    </footer>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <dialog id="plannerDialog" aria-labelledby="plannerTitle">
+    <div class="dialog-head">
+      <div>
+        <h2 id="plannerTitle">Plan your fuel stop</h2>
+        <p>Estimate what the fill-up will cost.</p>
+      </div>
+      <button class="dialog-close" type="button" id="closePlanner" aria-label="Close calculator">×</button>
+    </div>
+    <form class="planner-form" id="plannerForm" novalidate>
+      <label>Station
+        <select id="plannerStation" required></select>
+      </label>
+      <label>Fuel type
+        <select id="plannerFuel" required></select>
+      </label>
+      <label>Gallons
+        <input id="plannerGallons" type="number" min="0.1" max="500" step="0.1" value="10" inputmode="decimal" required>
+      </label>
+      <label>Price per gallon (the one on the sign)
+        <input id="plannerPrice" type="number" min="0.5" max="20" step="0.01" inputmode="decimal" placeholder="3.69" required>
+      </label>
+      <label class="check-row"><input id="plannerRemember" type="checkbox" checked> Remember this price for this station</label>
+      <p class="calculator-note" id="plannerNote">Prices are yours: VALUE CHARGE does not have live pump prices.</p>
+      <button class="primary-button" type="submit">Calculate stop cost</button>
+      <div class="plan-result" id="planResult" role="status" hidden></div>
+    </form>
+  </dialog>
+</body>
+</html>
