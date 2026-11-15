@@ -72,7 +72,9 @@ async function auditFiles(base) {
   check(res.headers.get('cache-control') === immutable, 'map engine caches for a year (versioned URL)', res.headers.get('cache-control') || 'missing');
   // The engine is an ES module: a browser refuses a module served with a non-JavaScript type.
   check(/javascript/.test(res.headers.get('content-type') || ''), 'map engine is served as JavaScript (module loads)', res.headers.get('content-type') || 'missing');
-  check(!files.some((f) => /maplibre-gl-5\./.test(f)), 'old map engine 5.x is ABSENT from the build (negative)');
+  // Render keeps earlier deploys' files reachable at their old URLs, so this asks the BUILD; the page itself only
+  // loads the engine named in map.js, which the file-by-file check above compares with local.
+  check(!files.some((f) => /maplibre-gl-5\./.test(f)), 'old map engine 5.x is not in the build (negative)');
 }
 
 async function auditData(base) {
